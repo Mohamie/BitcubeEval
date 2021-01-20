@@ -1,0 +1,84 @@
+﻿@model BitCube.Website.Models.Student
+
+@*A button for showing a modal and also a modal for adding a student(It does not save data, shows validations)*@
+
+<button class="btn btn-primary m-2" data-toggle="modal" data-target="#addStudentModal" onclick="showModal()">Add Student</button>
+
+<div class="modal fade" id="addStudentModal" data-backdrop="static" data-keyboard="false" tabindex="-1" role="dialog" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="staticBackdropLabel">Add Student</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body" id="addStudentModalBody">
+                <form id="addStudentForm">
+
+                    <div class="form-group">
+                        @Html.LabelFor(s => s.ForeNames)
+                        @Html.TextBoxFor(s => s.ForeNames, new { @class = "form-control" })
+                        @Html.ValidationMessageFor(s => s.ForeNames)
+                    </div>
+                    <div class="form-group">
+                        @Html.LabelFor(s => s.Surname)
+                        @Html.TextBoxFor(s => s.Surname, new { @class = "form-control" })
+                        @Html.ValidationMessageFor(s => s.Surname)
+
+                    </div>
+
+                    <div class="form-group">
+                        @Html.LabelFor(s => s.DateOfBirth)
+                        @Html.TextBoxFor(s => s.DateOfBirth, new { @class = "form-control", type = "date" })
+                        @Html.ValidationMessageFor(s => s.DateOfBirth)
+                    </div>
+
+                    <div class="form-group">
+                        @Html.LabelFor(s => s.EmailAddress)
+                        @Html.TextBoxFor(s => s.EmailAddress, new { @class = "form-control" })
+                        @Html.ValidationMessageFor(s => s.EmailAddress)
+                    </div>
+
+
+                    <div class="form-group">
+                        @Html.Label("Enrollment Degree")
+                        @Html.DropDownList("Choose Degree", ViewBag.DegreeSelect as SelectList, new { @class = "form-control" })
+                        @Html.ValidationMessageFor(s => s.EnrolledDegree.Duration)
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-primary">Save</button>
+                    </div>
+
+                </form>
+            </div>
+           
+        </div>
+    </div>
+</div>
+
+<script>
+    var saveStudent = function () {
+
+        var formData = $("#addStudentForm").serialize();
+
+        if (!$("#addStudentForm").valid()) {
+            return false;
+        }
+
+        $.ajax({
+            type: "POST",
+            url: "/Home/CreateStudent",
+            data: formData,
+            success: function (result) {
+
+                if (result) {
+                    $("#addStudentModal").modal('hide');
+                    @* window.location.href = "/Home/Index";*@
+                }
+
+            }
+        })
+</script>
