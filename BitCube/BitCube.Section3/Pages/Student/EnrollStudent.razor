@@ -1,0 +1,53 @@
+﻿@inject DialogService DialogService
+
+@*A form to Link a Degree to a student*@
+<EditForm class="form-group" Model="Student" OnValidSubmit="OnSubmit">
+
+    <DataAnnotationsValidator/>
+    <ValidationSummary/>
+
+    <label>Full Names</label>
+    <InputText disabled class="form-control my-2" @bind-Value="Student.ForeNames"/>
+    
+    <label>Surname</label>
+    <InputText disabled class="form-control my-2" @bind-Value="Student.Surname"/>
+    
+    <label>Date Of Birth</label>
+    <InputDate disabled class="form-control my-2" @bind-Value="Student.DateOfBirth"/>
+    
+    <label>Email Address</label>
+    <InputText disabled class="form-control my-2" @bind-Value="Student.EmailAddress"/>
+
+    <label>Choose Degree Below</label>
+    <InputSelect class="form-control my-2" @bind-Value="EnrolledDegreeId">
+
+        @foreach(var degree in Degrees)
+        {
+            <option value="@degree.Id.ToString()">@degree.Name</option>
+        }
+
+    </InputSelect>
+
+    <RadzenButton class="my-2" Text="Enroll Student" ButtonStyle="ButtonStyle.Success" type="submit" Icon="save"/>
+</EditForm>
+
+
+@code {
+
+    [Parameter]
+    public Student Student { get; set; }
+
+    [Parameter]
+    public List<Degree> Degrees { get; set; }
+
+    public string EnrolledDegreeId { get; set; } = "0";
+
+  
+    //Method to save selected Degree from Dropdown list to a provided Student
+    private void OnSubmit()
+    {
+        this.Student.EnrolledDegree = this.Degrees.Where(d => d.Id == Convert.ToInt32(EnrolledDegreeId)).FirstOrDefault();
+        DialogService.Close(Student);//returns data back to where the dialog was called
+    }
+
+}

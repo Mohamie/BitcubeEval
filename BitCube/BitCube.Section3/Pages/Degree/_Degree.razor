@@ -1,0 +1,56 @@
+﻿@inject SampleDataService SampleDataService
+@inject DialogService DialogService
+
+@*A Table of all Degrees in in-memory db(SampleDataService)*@
+<div class="card shadow">
+    <div class="card-header py-3">
+        <p class="text-primary m-0 font-weight-bold">Degree Info</p>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive table mt-2" id="dataTable" role="grid" aria-describedby="dataTable_info">
+            <table class="table my-0" id="dataTable">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Duration</th>
+                        <th>Lecture</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var degree in degrees)
+                    {
+                        <tr>
+                            <td>@degree.Name</td>
+                            <td>@degree.Duration Years</td>
+                            <td>@degree.Lecturer.FullName</td>
+                            <td><RadzenButton ButtonStyle="ButtonStyle.Info" Icon="visibility" Text="View Courses" Click="() =>ViewCourses(degree)" /></td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+
+@code {
+
+    List<Degree> degrees = new List<Degree>();
+    List<Course> courses = new List<Course>();
+
+    protected override void OnInitialized()
+    {
+        degrees = SampleDataService.GetAllDegrees();
+        courses = SampleDataService.GetAllCourses();
+    }
+
+    //Method to show a Dialog which display all Courses linked to a single Degree
+    async Task ViewCourses(Degree degree)
+    {
+        await DialogService.OpenAsync<DegreeCourses>($"Courses under {degree.Name}",
+            new Dictionary<string, object> { { "Courses", courses.Where(c => c.LinkedDegree.Id == degree.Id).ToList() } },
+            new DialogOptions() { Width = "750px", Height = "500px" });
+    }
+
+}

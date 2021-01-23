@@ -1,0 +1,44 @@
+﻿@inject DialogService DialogService
+
+@*A Form to add a new Stundent to in-memory db*@
+<EditForm class="form-group" Model="newStudent" OnValidSubmit="OnSubmit">
+
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <label>Fore Names</label>
+    <InputText class="form-control my-2" @bind-Value="newStudent.ForeNames" />
+   
+
+    <label>Surname</label>
+    <InputText class="form-control my-2" @bind-Value="newStudent.Surname" />
+    
+
+    <label>Date Of Birth</label>
+    <InputDate class="form-control my-2" @bind-Value="newStudent.DateOfBirth" />
+    
+
+    <label>Email Address</label>
+    <InputText type="email" class="form-control my-2" @bind-Value="newStudent.EmailAddress" />
+    
+
+    <button type="submit" class="btn btn-success my-3">Save</button>
+
+</EditForm>
+
+
+
+@code
+{
+    private Student newStudent = new Student();
+
+    //Method to save a new student when form data provided is valid
+    private void OnSubmit()
+    {
+        Random random = new Random();
+
+        newStudent.Id = random.Next(10, 100);//assign random number to Id, its not a good way but at least it'll work ;)
+
+        DialogService.Close(newStudent);//returns data back to where the dialog was called
+    }
+}

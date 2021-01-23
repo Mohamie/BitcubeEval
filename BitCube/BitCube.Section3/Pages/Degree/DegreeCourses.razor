@@ -1,0 +1,29 @@
+﻿
+@*A Table of all Courses Linked to A degree*@
+<table class="table table-bordered table-dark m-2" id="dataTable">
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Duration</th>
+            <th>Linked Degree</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var course in Courses)
+        {
+            <tr>
+                <td>@course.Name</td>
+                <td>@course.Duration Years</td>
+                <td>@course.LinkedDegree.Name</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+
+@code {
+
+    [Parameter]
+    public List<Course> Courses { get; set; }
+
+}

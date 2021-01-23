@@ -1,0 +1,167 @@
+﻿@inject SampleDataService sampledata
+@inject DialogService DialogService 
+@inject NotificationService NotificationService
+
+@*Button to show a Dialog Form to add new Student*@
+<button class="btn btn-primary my-2" @onclick="(() => AddStudent())">Add Student</button>
+
+@*A Table of All Students in in-memory db(SampleDataService)*@
+<div class="card shadow mb-3">
+    <div class="card-header py-3">
+        <p class="text-primary m-0 font-weight-bold">Students</p>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive table mt-2" id="dataTable" role="grid" aria-describedby="dataTable_info">
+            <table class="table my-0" id="dataTable">
+                <thead>
+                    <tr>
+                        <th>Full Name</th>
+                        <th>Surname</th>
+                        <th>Date Of Birth</th>
+                        <th>Enrolled Degree</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach(var student in students)
+                    {
+                        <tr>
+                            <td>@student.FirstName</td>
+                            <td>@student.Surname</td>
+                            <td>@student.DateOfBirth.ToString()</td>
+                            <td>
+                                
+                                @if(student.EnrolledDegree != null)
+                                {
+                                    <span class="text-success">@student.EnrolledDegree.Name </span> 
+                                }
+                                else
+                                {
+                                    <span class="text-danger">Not Enrolled</span>
+                                }
+                            </td>
+                            <td>
+                                @if (student.EnrolledDegree != null)
+                                {
+                                    <RadzenButton ButtonStyle="ButtonStyle.Danger" Icon="remove_circle_outline" Text="Remove Degree" Click="() => RemoveDegree(student.Id)"/>
+                                }
+                                else
+                                {
+                                    <RadzenButton ButtonStyle="ButtonStyle.Info" Icon="add_circle_outline" Text="Enroll Now" Click="() => EnrollDegree(student.Id)"/>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+
+@code
+{
+    private Student student;
+    private List<Student> students = new List<Student>();
+
+    //Notification Toast to be used to indicate outcome of operations
+    NotificationMessage notification = new NotificationMessage { Duration = 4000};
+
+    protected override void OnInitialized()
+    {
+        students = SampleDataService.GetAllStudents();
+    }
+
+    //Method to add new Student to in-memory db(SampleDataService)
+    async Task AddStudent()
+    {
+        student = await DialogService.OpenAsync<AddStudentForm>("Add Student");
+
+        if(student != null)
+        {
+            students.Add(student);
+
+
+            notification = new NotificationMessage
+            {
+                Severity = NotificationSeverity.Success,
+                Summary = "Student Added Succesfully",
+            };
+
+            NotificationService.Notify(notification);
+        }
+    }
+
+    //Method to Remove a linked Degree from a student 
+    async Task RemoveDegree(int studentId)
+    {
+        var deleteStudent = SampleDataService.GetStudentById(studentId);
+        if (deleteStudent != null)
+        {
+            //Confirm Dialog
+            bool? confirmDelete = await DialogService.Confirm($"Are You Sure You Want to Remove {deleteStudent.FullName} from {deleteStudent.EnrolledDegree.Name} ?",
+            "Confirm Deregistration",
+            new ConfirmOptions() { OkButtonText = "Yes", CancelButtonText = "Cancel"});
+
+            if(confirmDelete == true)
+            {
+                SampleDataService.RemoveDegreeFromStudent(studentId);
+
+                students = SampleDataService.GetAllStudents();
+                notification = new NotificationMessage
+                {
+                    Severity = NotificationSeverity.Info,
+                    Summary = "Student Removed From Degree",
+                };
+
+                NotificationService.Notify(notification);
+            }
+
+        }
+
+    }
+
+    //Method to Show a Dialog Form and Select/Set a Degree from dropdown list to a student
+    async Task EnrollDegree(int studentId)
+    {
+        Student editStudent = students.Where(s => s.Id == studentId).FirstOrDefault();
+        List<Degree> degrees = SampleDataService.GetAllDegrees();
+
+        //A dialog form to link a Degree to a Student
+        editStudent = await DialogService.OpenAsync<EnrollStudent>("Enroll Student To Degree", new Dictionary<string, object> { { "Student", editStudent }, { "Degrees", degrees } });
+
+        if(editStudent != null)
+        {
+            if(editStudent.EnrolledDegree != null)
+            {
+                //Update a Student Degree Enrollment to in-memory database
+                var enrollStudent = SampleDataService.EnrollStudent(editStudent.Id, editStudent.EnrolledDegree);
+
+                //if update was successfull(will be null if something went wrong)
+                if (enrollStudent != null)
+                {
+                    students = SampleDataService.GetAllStudents();
+
+                    notification = new NotificationMessage
+                    {
+                        Severity = NotificationSeverity.Info,
+                        Summary = "Student Enrolled To a Degree",
+                    };
+
+                    NotificationService.Notify(notification);
+                }
+                else
+                {
+                    notification = new NotificationMessage
+                    {
+                        Severity = NotificationSeverity.Error,
+                        Summary = "Something went wrong while Updating a Student Degree",
+                    };
+
+                    NotificationService.Notify(notification);
+                }
+            }
+
+        }
+    }
+
+}
